@@ -173,6 +173,20 @@ public class ReplaySokobanGame extends AbstractSokobanGame {
     @Override
     public void run() {
         // TODO
+        var inputThreads = new Thread[inputEngines.size()];
+        var renderingThread = new Thread(new RenderingEngineRunnable());
+        renderingThread.start();
+        for (int i = 0; i < inputThreads.length; ++i) {
+            inputThreads[i] = new Thread(new InputEngineRunnable(i,inputEngines.get(i)));
+            inputThreads[i].start();
+        }
+        try {
+            renderingThread.join();
+            for (int i = 0; i < inputThreads.length; ++i) {
+                inputThreads[i].join();
+            }
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
-
 }
