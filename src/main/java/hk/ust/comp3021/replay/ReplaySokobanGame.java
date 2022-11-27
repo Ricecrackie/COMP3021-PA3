@@ -102,7 +102,7 @@ public class ReplaySokobanGame extends AbstractSokobanGame {
     }
 
     // TODO: add any method or field you need.
-
+    protected static int nextThread = 0;
     /**
      * The implementation of the Runnable for each input engine thread.
      * Each input engine should run in a separate thread.
@@ -130,11 +130,30 @@ public class ReplaySokobanGame extends AbstractSokobanGame {
         public void run() {
             // TODO: modify this method to implement the requirements.
             while (!shouldStop()) {
-                final var action = inputEngine.fetchAction();
-                final var result = processAction(action);
-                if (result instanceof ActionResult.Failed failed) {
-                    renderingEngine.message(failed.getReason());
+                synchronized (ReplaySokobanGame.this) {
+                    if (mode.equals(Mode.ROUND_ROBIN)) {
+                        while (index != nextThread) {
+                            try {
+                                ReplaySokobanGame.this.wait();
+                            } catch (InterruptedException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+                    }
+                    execute();
+                    if (mode.equals(Mode.ROUND_ROBIN)) {
+                        nextThread = ++nextThread%ReplaySokobanGame.this.inputEngines.size();
+                    }
+                    ReplaySokobanGame.this.notifyAll();
                 }
+            }
+        }
+
+        private void execute() {
+            final var action = inputEngine.fetchAction();
+            final var result = processAction(action);
+            if (result instanceof ActionResult.Failed failed) {
+                renderingEngine.message(failed.getReason());
             }
         }
     }
