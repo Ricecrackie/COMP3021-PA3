@@ -147,8 +147,8 @@ public class ReplaySokobanGame extends AbstractSokobanGame {
                     }
                     if (mode.equals(Mode.ROUND_ROBIN)) {
                         nextThread = ++nextThread%ReplaySokobanGame.this.inputEngines.size();
+                        ReplaySokobanGame.this.notifyAll();
                     }
-                    ReplaySokobanGame.this.notifyAll();
                 }
             }
         }
@@ -182,7 +182,6 @@ public class ReplaySokobanGame extends AbstractSokobanGame {
                     throw new RuntimeException(e);
                 }
             } while (!shouldStop());
-            //renderingEngine.render(state);
             renderingEngine.message(GAME_EXIT_MESSAGE);
             if (state.isWin()) {
                 renderingEngine.message(WIN_MESSAGE);
@@ -206,10 +205,10 @@ public class ReplaySokobanGame extends AbstractSokobanGame {
             inputThreads[i].start();
         }
         try {
-            renderingThread.join();
             for (int i = 0; i < inputThreads.length; ++i) {
                 inputThreads[i].join();
             }
+            renderingThread.join();
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
