@@ -2,7 +2,7 @@ package hk.ust.comp3021.replay;
 
 
 import hk.ust.comp3021.actions.ActionResult;
-import hk.ust.comp3021.actions.Exit;
+//import hk.ust.comp3021.actions.Exit;
 import hk.ust.comp3021.game.AbstractSokobanGame;
 import hk.ust.comp3021.game.GameState;
 import hk.ust.comp3021.game.InputEngine;
@@ -140,20 +140,16 @@ public class ReplaySokobanGame extends AbstractSokobanGame {
                             }
                         }
                     }
-                    execute();
+                    final var action = inputEngine.fetchAction();
+                    final var result = processAction(action);
+                    if (result instanceof ActionResult.Failed failed) {
+                        renderingEngine.message(failed.getReason());
+                    }
                     if (mode.equals(Mode.ROUND_ROBIN)) {
                         nextThread = ++nextThread%ReplaySokobanGame.this.inputEngines.size();
                     }
                     ReplaySokobanGame.this.notifyAll();
                 }
-            }
-        }
-
-        private void execute() {
-            final var action = inputEngine.fetchAction();
-            final var result = processAction(action);
-            if (result instanceof ActionResult.Failed failed) {
-                renderingEngine.message(failed.getReason());
             }
         }
     }
@@ -186,6 +182,11 @@ public class ReplaySokobanGame extends AbstractSokobanGame {
                     throw new RuntimeException(e);
                 }
             } while (!shouldStop());
+            //renderingEngine.render(state);
+            renderingEngine.message(GAME_EXIT_MESSAGE);
+            if (state.isWin()) {
+                renderingEngine.message(WIN_MESSAGE);
+            }
         }
     }
 
